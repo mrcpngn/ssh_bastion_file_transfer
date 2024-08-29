@@ -1,5 +1,6 @@
 import paramiko
 import os
+import argparse
 from scp import SCPClient
 
 def load_ssh_config(hostname):
@@ -11,8 +12,8 @@ def load_ssh_config(hostname):
 
 def transfer_directory_via_bastion(target_host):
     with SCPClient(target_host.get_transport()) as scp:
-        scp.put(local_dir_path, remote_dir_path, recursive=True)
-        print(f"Successfully transferred {local_dir_path} to {remote_dir_path}")
+        scp.put(args.local_dir_path, args.remote_dir_path, recursive=True)
+        print(f"Successfully transferred {args.local_dir_path} to {args.remote_dir_path}")
         
 def ssh_login_and_transfer_files(jumpbox_host_alias, jumpbox_key_passphrase, target_host_alias, target_key_passphrase):
     try:
@@ -70,15 +71,20 @@ def ssh_login_and_transfer_files(jumpbox_host_alias, jumpbox_key_passphrase, tar
         print(f"An error occurred: {e}")
 
 if __name__ == "__main__":
-    # Replace with your SSH alias (defined in ~/.ssh/config)
-    jumpbox_host_alias = "enter_jumpbox_host"
-    jumpbox_key_passphrase = "enter_jumpbox_ssh_passphrase"
+    parser = argparse.ArgumentParser()
 
-    target_host_alias = "enter_target_host"
-    target_key_passphrase = "enter_target_ssh_passphrase"
+    # Arguments
+    parser.add_argument("jumpbox_host_alias")       # Jumpbox host alias
+    parser.add_argument("jumpbox_key_passphrase")   # Jumpbox host passphrase
 
-    local_dir_path = "/path/to/local/directory"  # Local directory to transfer
-    remote_dir_path = "/path/to/remote/directory"  # Destination directory on the remote server
+    parser.add_argument("target_host_alias")        # Target host alias
+    parser.add_argument("target_key_passphrase")    # Target host passphrase
 
-    ssh_login_and_transfer_files(jumpbox_host_alias, jumpbox_key_passphrase, target_host_alias, target_key_passphrase)
+    parser.add_argument("local_dir_path")  # Local directory to transfer
+    parser.add_argument("remote_dir_path")  # Destination directory on the remote server
+
+    args = parser.parse_args()
+
+    # Pass the arguments to the function
+    ssh_login_and_transfer_files(args.jumpbox_host_alias, args.jumpbox_key_passphrase, args.target_host_alias, args.target_key_passphrase)
     
